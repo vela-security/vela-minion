@@ -49,7 +49,7 @@ func Encrypt(raw []byte) []byte {
 }
 
 // EncryptJSON 将struct序列化为JSON后加密
-func EncryptJSON(v any) ([]byte, error) {
+func EncryptJSON(v interface{}) ([]byte, error) {
 	raw, err := json.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func EncryptJSON(v any) ([]byte, error) {
 }
 
 // EncryptPayload 文件下载专用
-func EncryptPayload(v any) ([]byte, error) {
+func EncryptPayload(v interface{}) ([]byte, error) {
 	enc, err := EncryptJSON(v)
 	if err != nil {
 		return nil, err
