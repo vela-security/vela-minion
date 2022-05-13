@@ -50,7 +50,7 @@ func Decrypt(enc []byte) ([]byte, error) {
 }
 
 // DecryptJSON 解密后反序列化为struct
-func DecryptJSON(enc []byte, v any) error {
+func DecryptJSON(enc []byte, v interface{}) error {
 	raw, err := Decrypt(enc)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func DecryptJSON(enc []byte, v any) error {
 }
 
 // DecryptFile 从文件的payload读取加密数据并反序列化到struct
-func DecryptFile(path string, v any) error {
+func DecryptFile(path string, v interface{}) error {
 	self, err := os.Open(path)
 	if err != nil {
 		return err
