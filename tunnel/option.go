@@ -1,11 +1,10 @@
-package rockcli
+package tunnel
 
 import (
 	"context"
+	"github.com/vela-security/vela-public/assert"
 	"net/http"
 	"time"
-
-	"github.com/vela-security/vela-minion/internal/logger"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,7 +12,7 @@ import (
 type config struct {
 	handler  Handler
 	interval time.Duration
-	logger   logger.Logger
+	env      assert.Environment
 	dialer   *websocket.Dialer
 	client   *http.Client
 	ctx      context.Context
@@ -40,10 +39,11 @@ func WithInterval(d time.Duration) Option {
 	})
 }
 
-func WithLogger(lg logger.Logger) Option {
+func WithEnv(env assert.Environment) Option {
 	return optionFunc(func(cfg *config) {
-		if lg != nil {
-			cfg.logger = lg
+		if env != nil {
+			cfg.env = env
+			cfg.handler = noopHandler{env}
 		}
 	})
 }

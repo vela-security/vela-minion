@@ -1,15 +1,15 @@
-package rockcli
+package tunnel
 
 import (
 	"context"
 	"errors"
+	"github.com/vela-security/vela-public/assert"
 	"io"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/vela-security/vela-minion/internal/banner"
-	"github.com/vela-security/vela-minion/internal/logger"
 
 	"github.com/gorilla/websocket"
 )
@@ -33,7 +33,7 @@ type Hide struct {
 type Client struct {
 	hide      Hide               // 配置数据
 	handler   Handler            // 消息处理器
-	logger    logger.Logger      // 日志打印
+	xEnv      assert.Environment // 日志打印
 	interval  time.Duration      // 心跳间隔
 	dialer    *websocket.Dialer  // websocket dialer
 	address   address            // 当前所选的连接地址
@@ -52,11 +52,8 @@ func init() {
 // New 新建 client
 func New(hide Hide, options ...Option) *Client {
 	ctx, cancel := context.WithCancel(context.Background())
-	lg := logger.Default()
 	cfg := &config{
-		handler:  noopHandler{logger: lg},
 		interval: 10 * time.Minute,
-		logger:   lg,
 		dialer:   websocket.DefaultDialer,
 		client:   http.DefaultClient,
 		ctx:      ctx,
@@ -70,7 +67,7 @@ func New(hide Hide, options ...Option) *Client {
 	return &Client{
 		hide:     hide,
 		handler:  cfg.handler,
-		logger:   cfg.logger,
+		xEnv:     cfg.env,
 		interval: cfg.interval,
 		dialer:   cfg.dialer,
 		client:   cfg.client,
@@ -80,7 +77,7 @@ func New(hide Hide, options ...Option) *Client {
 }
 
 func (c Client) Name() string {
-	return "rock.minion.client"
+	return "vela.minion.client"
 }
 
 func (c Client) Close() error {
@@ -123,7 +120,7 @@ func (c *Client) Inactive() bool {
 }
 
 // Push 通过 websocket 通道发送数据
-func (c *Client) Push(op Opcode, data any) error {
+func (c *Client) Push(op assert.Opcode, data any) error {
 	if conn := c.conn; conn != nil {
 		return conn.Send(&Message{Opcode: op, Data: data})
 	}
@@ -175,7 +172,7 @@ func (c *Client) loopBrokerDial() error {
 		if e, ok := err.(*HTTPError); ok && e.Permanently() {
 			return e
 		}
-		c.logger.Warnf("连接 %s 失败: %v", addr.URL, err)
+		c.xEnv.Warnf("连接 %s 失败: %v", addr.URL, err)
 	}
 	return err
 }
@@ -183,6 +180,9 @@ func (c *Client) loopBrokerDial() error {
 // dialBroker 连接 broker
 func (c Client) dialBroker(addr address) (*Conn, error) {
 	ident := generateIdent(c.hide.Edition, addr.URL)
+
+	c.xEnv.WithBroker(ident.Arch, ident.MAC, ident.Inet, ident.Inet6, ident.Edition)
+
 	auth, err := ident.marshal()
 	if err != nil {
 		return nil, err
@@ -230,18 +230,18 @@ func (c Client) dial(u *url.URL, header http.Header) (*websocket.Conn, *http.Res
 
 // heartbeat 发送心跳包
 func (c Client) heartbeat(ctx context.Context, interval time.Duration) {
-	msg := &Message{Opcode: OpHeartbeat}
+	msg := &Message{Opcode: assert.OpHeartbeat}
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
-			c.logger.Debugf("停止发送心跳")
+			c.xEnv.Debugf("停止发送心跳")
 			return
 		case <-ticker.C:
 			if err := c.conn.Send(msg); err != nil {
-				c.logger.Warnf("心跳发送失败：%v", err)
+				c.xEnv.Warnf("心跳发送失败：%v", err)
 			}
 		}
 	}
@@ -252,7 +252,7 @@ func (c *Client) process(connected bool) {
 		if connected {
 			ident := c.conn.Ident()
 			claim := c.conn.Claim()
-			c.logger.Debugf("连接成功: %s\n节点信息:\nIPv4: %s\nIPv6: %s\nMAC : %s\n版本: %s\n节点ID: %s\nToken: %s\nMask: %d",
+			c.xEnv.Debugf("连接成功: %s\n节点信息:\nIPv4: %s\nIPv6: %s\nMAC : %s\n版本: %s\n节点ID: %s\nToken: %s\nMask: %d",
 				c.address.URL, ident.Inet, ident.Inet6, ident.MAC, ident.Edition, claim.MinionID, claim.Token, claim.Mask)
 
 			// 定时发送心跳
@@ -273,12 +273,12 @@ func (c *Client) process(connected bool) {
 			num++
 			err := c.loopBrokerDial()
 			if connected = err == nil; connected {
-				c.logger.Infof("第%d次重连成功", num)
+				c.xEnv.Infof("第%d次重连成功", num)
 				break
 			}
 
 			wait := c.wait(num)
-			c.logger.Infof("%s后第%d次重试", wait, num)
+			c.xEnv.Infof("%s后第%d次重试", wait, num)
 			time.Sleep(wait)
 		}
 	}

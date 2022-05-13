@@ -2,7 +2,8 @@ package dispatch
 
 import (
 	"fmt"
-	"github.com/vela-security/public/assert"
+	"github.com/vela-security/vela-public/assert"
+	"github.com/vela-security/vela-minion/tunnel"
 	"io"
 	"net/http"
 	"os"
@@ -12,38 +13,36 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/vela-security/vela-minion/rockcli"
 )
 
 type dispatch struct {
 	xEnv         assert.Environment
-	task         rockTask
-	third        *rockThird
+	task         velaTask
+	third        *velaThird
 	pmu          sync.RWMutex
-	processes    map[rockcli.Opcode]*process
+	processes    map[assert.Opcode]*process
 	taskSyncing  int32
 	thirdSyncing int32
 }
 
 func WithEnv(env assert.Environment) *dispatch {
-	processes := make(map[rockcli.Opcode]*process, 16)
-	d := &dispatch{xEnv: env, task: rockTask{xEnv: env}, third: newRockThird(env), processes: processes}
-	_ = d.register(rockcli.OpSubstance, d.syncTask)
-	_ = d.register(rockcli.OpThird, d.syncThird)
-	_ = d.register(rockcli.OpReload, d.reloadSubstance)
-	_ = d.register(rockcli.OpDeleted, d.opDeleted)
-	_ = d.register(rockcli.OpUpgrade, d.opUpgrade)
+	processes := make(map[assert.Opcode]*process, 16)
+	d := &dispatch{xEnv: env, task: velaTask{xEnv: env}, third: newRockThird(env), processes: processes}
+	_ = d.register(assert.OpSubstance, d.syncTask)
+	_ = d.register(assert.OpThird, d.syncThird)
+	_ = d.register(assert.OpReload, d.reloadSubstance)
+	_ = d.register(assert.OpDeleted, d.opDeleted)
+	_ = d.register(assert.OpUpgrade, d.opUpgrade)
 
 	return d
 }
 
-func (d *dispatch) OnConnect(cli *rockcli.Client) {
+func (d *dispatch) OnConnect(cli *tunnel.Client) {
 	_ = d.syncThird(cli)
 	_ = d.syncTask(cli)
 }
 
-func (d *dispatch) OnMessage(cli *rockcli.Client, rec *rockcli.Receive) {
+func (d *dispatch) OnMessage(cli *tunnel.Client, rec *tunnel.Receive) {
 	opcode := rec.Opcode()
 	d.xEnv.Warnf("执行命令: %s", opcode)
 	d.pmu.RLock()
@@ -61,10 +60,10 @@ func (d *dispatch) OnMessage(cli *rockcli.Client, rec *rockcli.Receive) {
 	}
 }
 
-func (d *dispatch) OnDisconnect(cli *rockcli.Client) {
+func (d *dispatch) OnDisconnect(cli *tunnel.Client) {
 }
 
-func (d *dispatch) syncTask(cli *rockcli.Client) error {
+func (d *dispatch) syncTask(cli *tunnel.Client) error {
 	if !atomic.CompareAndSwapInt32(&d.taskSyncing, 0, 1) {
 		return nil
 	}
@@ -75,7 +74,7 @@ func (d *dispatch) syncTask(cli *rockcli.Client) error {
 	return nil
 }
 
-func (d *dispatch) syncThird(cli *rockcli.Client) error {
+func (d *dispatch) syncThird(cli *tunnel.Client) error {
 	if !atomic.CompareAndSwapInt32(&d.thirdSyncing, 0, 1) {
 		return nil
 	}
@@ -86,12 +85,12 @@ func (d *dispatch) syncThird(cli *rockcli.Client) error {
 	return nil
 }
 
-func (d *dispatch) reloadSubstance(cli *rockcli.Client, dat *substance) error {
+func (d *dispatch) reloadSubstance(cli *tunnel.Client, dat *substance) error {
 	return d.task.reload(cli, dat)
 }
 
 // 	OpDeleted
-func (d *dispatch) opDeleted(_ *rockcli.Client) error {
+func (d *dispatch) opDeleted(_ *tunnel.Client) error {
 	d.xEnv.Warnf("节点被删除，理解退出程序")
 	os.Exit(0)
 	return nil
@@ -102,7 +101,7 @@ type upgradeVO struct {
 }
 
 //	OpUpgrade
-func (d *dispatch) opUpgrade(cli *rockcli.Client, vo *upgradeVO) error {
+func (d *dispatch) opUpgrade(cli *tunnel.Client, vo *upgradeVO) error {
 	d.xEnv.Infof("节点升级到: %s", vo.Edition)
 
 	// 获取当前文件的绝对路径

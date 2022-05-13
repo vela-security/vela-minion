@@ -16,23 +16,23 @@ const (
 )
 
 type actionThird struct {
-	model.RockThird
+	model.VelaThird
 	Action                          thirdAction
 	LocalHash, LocalPath, LocalName string
 }
 
 // compare 比较差异
-func (rt *rockThird) compare(recs model.RockThirds) []*actionThird {
+func (vt *velaThird) compare(recs model.VelaThirds) []*actionThird {
 
 	res := make([]*actionThird, 0, 16)
-	locals := rt.thirds().Map() // 获取当前已经加载好的三方文件
+	locals := vt.thirds().Map() // 获取当前已经加载好的三方文件
 
 	for _, rec := range recs {
 		id := rec.ID
 		local := locals[id]
 
-		mrt := model.RockThird{ID: rec.ID, Path: rec.Path, Name: rec.Name, Hash: rec.Hash}
-		at := &actionThird{RockThird: mrt}
+		mrt := model.VelaThird{ID: rec.ID, Path: rec.Path, Name: rec.Name, Hash: rec.Hash}
+		at := &actionThird{VelaThird: mrt}
 
 		if local == nil {
 			at.Action = taCreate
@@ -58,7 +58,7 @@ func (rt *rockThird) compare(recs model.RockThirds) []*actionThird {
 	}
 
 	for _, local := range locals {
-		at := &actionThird{RockThird: model.RockThird{ID: local.ID},
+		at := &actionThird{VelaThird: model.VelaThird{ID: local.ID},
 			Action: taDelete, LocalHash: local.Hash, LocalPath: local.Path, LocalName: local.Name}
 		res = append(res, at)
 	}

@@ -1,12 +1,13 @@
-package rockcli
+package tunnel
 
 import (
 	"encoding/binary"
 	"encoding/json"
+	"github.com/vela-security/vela-public/assert"
 )
 
 type Message struct {
-	Opcode Opcode
+	Opcode assert.Opcode
 	Data   any
 }
 
@@ -15,12 +16,12 @@ func (m Message) marshal(mask byte) ([]byte, error) {
 }
 
 type Receive struct {
-	opcode Opcode
+	opcode assert.Opcode
 	data   []byte
 }
 
 // Opcode 操作码
-func (r Receive) Opcode() Opcode {
+func (r Receive) Opcode() assert.Opcode {
 	return r.opcode
 }
 
@@ -37,7 +38,7 @@ func (r *Receive) unmarshal(raw []byte, mask byte) error {
 	if err != nil {
 		return err
 	}
-	r.opcode, r.data = Opcode(opcode), data
+	r.opcode, r.data = assert.Opcode(opcode), data
 	return nil
 }
 

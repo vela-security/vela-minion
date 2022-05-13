@@ -1,85 +1,85 @@
 package dispatch
 
 import (
-	"github.com/vela-security/public/assert"
+	"github.com/vela-security/vela-public/assert"
+	"github.com/vela-security/vela-minion/tunnel"
 	"sync"
 	"time"
 
 	"github.com/vela-security/vela-minion/model"
-	"github.com/vela-security/vela-minion/rockcli"
 )
 
 type normalReq struct {
 	Data any `json:"data"`
 }
 
-type rockThird struct {
+type velaThird struct {
 	xEnv     assert.Environment
 	store    assert.Bucket
 	storeKey string
 	mutex    sync.RWMutex
-	files    map[string]*model.RockThird
+	files    map[string]*model.VelaThird
 }
 
-func newRockThird(env assert.Environment) *rockThird {
+func newRockThird(env assert.Environment) *velaThird {
 	storeKey := "third"
 	store := env.Bucket(storeKey)
 
-	files := make(map[string]*model.RockThird, 32)
-	rt := &rockThird{xEnv: env, storeKey: storeKey, store: store, files: files}
+	files := make(map[string]*model.VelaThird, 32)
+	vt := &velaThird{xEnv: env, storeKey: storeKey, store: store, files: files}
 
-	env.Mime(model.RockThirds{}, rt.encodeFunc, rt.decodeFunc)
-	rt.loadDB()
+	env.Mime(model.VelaThirds{}, vt.encodeFunc, vt.decodeFunc)
+	vt.loadDB()
 
-	return rt
+	return vt
 }
 
-func (rt *rockThird) sync(cli *rockcli.Client) {
+func (vt *velaThird) sync(cli *tunnel.Client) {
 	var retry int
 	var success bool
 	for !success && retry < 5 {
 		retry++
 
-		thirds, err := rt.postThirds(cli)
+		thirds, err := vt.postThirds(cli)
 		if err != nil {
-			rt.xEnv.Errorf("上报三方文件错误: %v", err)
+			vt.xEnv.Errorf("上报三方文件错误: %v", err)
 			time.Sleep(time.Second)
 			continue
 		}
 
-		diffs := rt.compare(thirds)
+		diffs := vt.compare(thirds)
 		if len(diffs) == 0 {
 			success = true
 			break
 		}
 
-		rt.xEnv.Infof("正在处理三方文件差异")
-		rt.process(cli, diffs)
+		vt.xEnv.Infof("正在处理三方文件差异")
+		vt.process(cli, diffs)
 
 		time.Sleep(time.Second)
 	}
 
-	rt.saveDB()
+	vt.saveDB()
 }
 
-func (rt *rockThird) thirds() model.RockThirds {
-	rt.mutex.RLock()
-	defer rt.mutex.RUnlock()
+func (vt *velaThird) thirds() model.VelaThirds {
+	vt.mutex.RLock()
+	defer vt.mutex.RUnlock()
 
-	ret := make(model.RockThirds, 0, len(rt.files))
-	for _, f := range rt.files {
-		ret = append(ret, &model.RockThird{ID: f.ID, Path: f.Path, Name: f.Name, Hash: f.Hash})
+	ret := make(model.VelaThirds, 0, len(vt.files))
+	for _, f := range vt.files {
+		ret = append(ret, &model.VelaThird{ID: f.ID, Path: f.Path, Name: f.Name, Hash: f.Hash})
 	}
 
 	return ret
 }
 
-func (rt *rockThird) postThirds(cli *rockcli.Client) (model.RockThirds, error) {
-	data := rt.thirds()
+func (vt *velaThird) postThirds(cli *tunnel.Client) (model.VelaThirds, error) {
+	data := vt.thirds()
 	req := &dataReq{Data: data}
 
 	var res struct {
-		Data model.RockThirds `json:"data"`
+		Data model.VelaThirds `json:"data"`
 	}
 	if err := cli.PostJSON("/v1/third/sync", req, &res); err != nil {
 		return nil, err

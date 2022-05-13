@@ -3,9 +3,10 @@ package dispatch
 import (
 	"errors"
 	"fmt"
+	"github.com/vela-security/vela-public/assert"
 	"reflect"
 
-	"github.com/vela-security/vela-minion/rockcli"
+	"github.com/vela-security/vela-minion/tunnel"
 )
 
 type process struct {
@@ -15,7 +16,7 @@ type process struct {
 	in  reflect.Value // 入参反射类型
 }
 
-func (p process) execute(cli *rockcli.Client, msg *rockcli.Receive) error {
+func (p process) execute(cli *tunnel.Client, msg *tunnel.Receive) error {
 	rc := reflect.ValueOf(cli)
 	var args []reflect.Value
 	if !p.arg { // 没有其它参数的情况
@@ -42,10 +43,10 @@ func (p process) execute(cli *rockcli.Client, msg *rockcli.Receive) error {
 	return ret.Interface().(error)
 }
 
-var cliType = reflect.TypeOf(new(rockcli.Client))
+var cliType = reflect.TypeOf(new(tunnel.Client))
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
 
-func (d *dispatch) register(opcode rockcli.Opcode, fn any) error {
+func (d *dispatch) register(opcode assert.Opcode, fn any) error {
 	if fn == nil {
 		return errors.New("方法不能为空")
 	}

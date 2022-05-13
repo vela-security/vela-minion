@@ -1,4 +1,4 @@
-package rockcli
+package tunnel
 
 import "github.com/vela-security/vela-minion/internal/ciphertext"
 

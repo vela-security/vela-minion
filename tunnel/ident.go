@@ -1,4 +1,4 @@
-package rockcli
+package tunnel
 
 import (
 	"net"
@@ -52,14 +52,23 @@ func (i *Ident) complementNet(u *url.URL) {
 
 	// 此时我们并不知道这是 ipv4 还是 ipv6
 	ip := conn.LocalAddr().(*net.UDPAddr).IP
-	anther, mac := i.anotherInet(ip)
-	i.MAC = mac
-	if ip.To4() != nil { // 如果是 IPv6 inet.To4() 会返回 nil
+	if ip.To4() != nil {
 		i.Inet = ip.To4()
-		i.Inet6 = anther.To16()
 	} else {
 		i.Inet6 = ip.To16()
+	}
+
+	anther, mac := i.anotherInet(ip)
+	i.MAC = mac
+
+	if ip.Equal(anther) { //判断anther 是否相等
+		return
+	}
+
+	if anther.To4() != nil {
 		i.Inet = anther.To4()
+	} else {
+		i.Inet6 = anther.To16()
 	}
 }
 
@@ -81,10 +90,10 @@ func (Ident) lookupIP(ip net.IP, addr []net.Addr) (net.IP, bool) {
 		if n.(*net.IPNet).IP.Equal(ip) {
 			for _, ad := range addr {
 				inet := ad.(*net.IPNet).IP
-				if inet.To4() == nil && v4 {
+				if inet.To4() == nil && !v4 {
 					return inet.To16(), true
 				}
-				if inet.To4() != nil && !v4 {
+				if inet.To4() != nil && v4 {
 					return inet.To4(), true
 				}
 			}

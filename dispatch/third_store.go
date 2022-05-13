@@ -11,37 +11,37 @@ import (
 	"github.com/vela-security/vela-minion/model"
 )
 
-func (rt *rockThird) saveDB() {
-	thirds := rt.thirds()
-	_ = rt.store.Store(rt.storeKey, thirds, 0)
+func (vt *velaThird) saveDB() {
+	thirds := vt.thirds()
+	_ = vt.store.Store(vt.storeKey, thirds, 0)
 }
 
-func (rt *rockThird) loadDB() {
-	data, err := rt.store.Get(rt.storeKey)
+func (vt *velaThird) loadDB() {
+	data, err := vt.store.Get(vt.storeKey)
 	if err != nil {
 		return
 	}
 
-	thirds, ok := data.(model.RockThirds)
+	thirds, ok := data.(model.VelaThirds)
 	if !ok {
 		return
 	}
 
-	hm := make(map[string]*model.RockThird, 32)
+	hm := make(map[string]*model.VelaThird, 32)
 	for _, third := range thirds {
 		// 开始校验文件
-		hash := rt.md5(filepath.Join(third.Path, third.Name))
+		hash := vt.md5(filepath.Join(third.Path, third.Name))
 		if hash == third.Hash {
 			hm[third.ID] = third
 		}
 	}
 
-	rt.mutex.Lock()
-	defer rt.mutex.Unlock()
-	rt.files = hm
+	vt.mutex.Lock()
+	defer vt.mutex.Unlock()
+	vt.files = hm
 }
 
-func (*rockThird) md5(path string) string {
+func (*velaThird) md5(path string) string {
 	file, err := os.Open(path)
 	if err != nil {
 		return ""
@@ -66,12 +66,12 @@ func (*rockThird) md5(path string) string {
 	return hex.EncodeToString(sum)
 }
 
-func (rt *rockThird) encodeFunc(v any) ([]byte, error) {
+func (vt *velaThird) encodeFunc(v any) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (rt *rockThird) decodeFunc(data []byte) (any, error) {
-	var res model.RockThirds
+func (vt *velaThird) decodeFunc(data []byte) (any, error) {
+	var res model.VelaThirds
 	if err := json.Unmarshal(data, &res); err != nil {
 		return nil, err
 	}
