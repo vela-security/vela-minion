@@ -6,7 +6,7 @@ import (
 )
 
 // Stream 建立 stream 通道
-func (c Client) Stream(mode string, data any) (*StreamConn, error) {
+func (c Client) Stream(mode string, data interface{}) (*StreamConn, error) {
 	conn := c.conn
 	if conn == nil {
 		return nil, io.EOF

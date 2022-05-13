@@ -66,11 +66,11 @@ func (*velaThird) md5(path string) string {
 	return hex.EncodeToString(sum)
 }
 
-func (vt *velaThird) encodeFunc(v any) ([]byte, error) {
+func (vt *velaThird) encodeFunc(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (vt *velaThird) decodeFunc(data []byte) (any, error) {
+func (vt *velaThird) decodeFunc(data []byte) (interface{}, error) {
 	var res model.VelaThirds
 	if err := json.Unmarshal(data, &res); err != nil {
 		return nil, err

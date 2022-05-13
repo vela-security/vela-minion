@@ -104,8 +104,8 @@ func (Ident) lookupIP(ip net.IP, addr []net.Addr) (net.IP, bool) {
 
 // streamIdent stream 模式的认证包
 type streamIdent struct {
-	Mode string `json:"mode"` // Stream 的连接模式
-	Data any    `json:"data"` // 内部数据
+	Mode string      `json:"mode"` // Stream 的连接模式
+	Data interface{} `json:"data"` // 内部数据
 }
 
 func (i streamIdent) marshal() (string, error) {

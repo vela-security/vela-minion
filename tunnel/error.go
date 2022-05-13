@@ -25,7 +25,7 @@ type HTTPError struct {
 // 		代表其它错误，一般为服务端逻辑问题
 //  425 Too Early          : 未激活
 // 		代表节点未激活，等待管理员激活即可连接成功
-//  429 Too Many Requests  : 重复连接
+//  429 Too Minterface{} Requests  : 重复连接
 // 		代表节点已经上线，不允许上线
 func (e HTTPError) Error() string {
 	switch e.Code {
@@ -51,7 +51,7 @@ func (e HTTPError) Error() string {
 // 	403 Forbidden          : 禁止登录
 //  405 Method Not Allowed : 没有实现
 //  406 Not Acceptable     : 其它错误
-//  429 Too Many Requests  : 重复连接
+//  429 Too Minterface{} Requests  : 重复连接
 func (e *HTTPError) Permanently() bool {
 	return e.Code == http.StatusForbidden
 }

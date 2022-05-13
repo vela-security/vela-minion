@@ -46,7 +46,7 @@ func (p process) execute(cli *tunnel.Client, msg *tunnel.Receive) error {
 var cliType = reflect.TypeOf(new(tunnel.Client))
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
 
-func (d *dispatch) register(opcode assert.Opcode, fn any) error {
+func (d *dispatch) register(opcode assert.Opcode, fn interface{}) error {
 	if fn == nil {
 		return errors.New("方法不能为空")
 	}

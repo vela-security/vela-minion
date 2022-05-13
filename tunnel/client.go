@@ -120,7 +120,7 @@ func (c *Client) Inactive() bool {
 }
 
 // Push 通过 websocket 通道发送数据
-func (c *Client) Push(op assert.Opcode, data any) error {
+func (c *Client) Push(op assert.Opcode, data interface{}) error {
 	if conn := c.conn; conn != nil {
 		return conn.Send(&Message{Opcode: op, Data: data})
 	}

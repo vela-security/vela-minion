@@ -8,7 +8,7 @@ import (
 type config struct {
 	Type string
 	Name string
-	Data map[string]any
+	Data map[string]interface{}
 }
 
 func toArr(arr []lua.LValue, x func(i interface{})) {
@@ -25,7 +25,7 @@ func toArr(arr []lua.LValue, x func(i interface{})) {
 }
 
 func toMap(tab *lua.LTable, x func(i interface{})) {
-	kv := map[string]any{}
+	kv := map[string]interface{}{}
 	tab.Range(func(key string, val lua.LValue) {
 		convert(val, func(i interface{}) {
 			kv[key] = i
@@ -63,7 +63,7 @@ func convert(v lua.LValue, x func(i interface{})) {
 
 func newConfig(L *lua.LState, tab *lua.LTable) *config {
 	cfg := &config{
-		Data: make(map[string]any, 6),
+		Data: make(map[string]interface{}, 6),
 	}
 
 	tab.Range(func(key string, val lua.LValue) {

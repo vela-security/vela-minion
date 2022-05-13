@@ -2,9 +2,9 @@ package minion
 
 import (
 	"encoding/json"
+	audit "github.com/vela-security/vela-audit"
 	"github.com/vela-security/vela-public/assert"
 	"github.com/vela-security/vela-public/lua"
-	audit "github.com/vela-security/vela-audit"
 )
 
 type pushEx struct {

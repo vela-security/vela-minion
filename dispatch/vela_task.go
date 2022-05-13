@@ -7,13 +7,13 @@ import (
 	"github.com/vela-security/vela-public/catch"
 	"time"
 
-	"github.com/vela-security/vela-public/safecall"
 	"github.com/vela-security/vela-minion/model"
 	"github.com/vela-security/vela-minion/tunnel"
+	"github.com/vela-security/vela-public/safecall"
 )
 
 type dataReq struct {
-	Data any `json:"data"`
+	Data interface{} `json:"data"`
 }
 
 type substances []*substance
@@ -72,7 +72,7 @@ func (vt velaTask) sync(cli *tunnel.Client) {
 func (vt velaTask) safeExecutes(ss substances) (err error) {
 	fn := func() error { return vt.executes(ss) }
 	onTimeout := func() { err = errors.New("执行超时") }
-	onPanic := func(cause any) { err = fmt.Errorf("执行发生了 panic: %v", cause) }
+	onPanic := func(cause interface{}) { err = fmt.Errorf("执行发生了 panic: %v", cause) }
 	onError := func(ex error) { err = fmt.Errorf("执行发生了错误: %s", ex) }
 
 	safecall.New(!vt.xEnv.IsDebug()).Timeout(time.Minute).

@@ -8,7 +8,7 @@ import (
 
 type Message struct {
 	Opcode assert.Opcode
-	Data   any
+	Data   interface{}
 }
 
 func (m Message) marshal(mask byte) ([]byte, error) {
@@ -26,7 +26,7 @@ func (r Receive) Opcode() assert.Opcode {
 }
 
 // Bind 参数绑定
-func (r Receive) Bind(v any) error {
+func (r Receive) Bind(v interface{}) error {
 	if len(r.data) == 0 {
 		return nil
 	}
@@ -54,7 +54,7 @@ func unmarshal(raw []byte, mask byte) (uint16, []byte, error) {
 	return opcode, raw[2:], nil
 }
 
-func marshal(opcode uint16, data any, mask byte) ([]byte, error) {
+func marshal(opcode uint16, data interface{}, mask byte) ([]byte, error) {
 	var dat []byte
 	if data != nil {
 		var err error

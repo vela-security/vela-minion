@@ -1,8 +1,8 @@
 package dispatch
 
 import (
-	"github.com/vela-security/vela-public/assert"
 	"github.com/vela-security/vela-minion/tunnel"
+	"github.com/vela-security/vela-public/assert"
 	"sync"
 	"time"
 
@@ -10,7 +10,7 @@ import (
 )
 
 type normalReq struct {
-	Data any `json:"data"`
+	Data interface{} `json:"data"`
 }
 
 type velaThird struct {

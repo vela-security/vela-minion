@@ -21,7 +21,7 @@ func (h HTTPResponse) Close() {
 	}
 }
 
-func (h HTTPResponse) JSON(v any) error {
+func (h HTTPResponse) JSON(v interface{}) error {
 	if h.Error != nil {
 		return h.Error
 	}
@@ -89,7 +89,7 @@ func (c Client) HTTP(method, path, query string, body io.Reader, header http.Hea
 	return c.Do(r)
 }
 
-func (c Client) PostJSON(path string, data, reply any) error {
+func (c Client) PostJSON(path string, data, reply interface{}) error {
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
 		return err
