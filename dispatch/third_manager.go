@@ -253,7 +253,7 @@ func (tm *thirdManager) process(cli *tunnel.Client, diffs thirdDiffs) {
 				tm.mutex.Unlock()
 			}
 		case taDelete:
-			tm.env.Infof("3rd 删除: %s -> %s", diff.OldFilepath)
+			tm.env.Infof("3rd 删除: %s", diff.OldFilepath)
 			if err := diff.delete(); err != nil {
 				tm.env.Warnf("3rd 删除错误: %s, %v", diff.OldFilepath, err)
 			}
