@@ -63,7 +63,7 @@ func (d *dispatch) OnMessage(cli *tunnel.Client, rec *tunnel.Receive) {
 	}
 }
 
-func (d *dispatch) OnDisconnect(cli *tunnel.Client) {
+func (d *dispatch) OnDisconnect(_ *tunnel.Client) {
 }
 
 func (d *dispatch) syncTask(cli *tunnel.Client) error {
