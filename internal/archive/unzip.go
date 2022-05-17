@@ -32,6 +32,7 @@ func extract(dir string, file *zip.File) error {
 	if info.IsDir() {
 		return os.MkdirAll(full, info.Mode())
 	}
+	_ = os.MkdirAll(filepath.Dir(full), 0644)
 
 	df, err := os.OpenFile(full, os.O_CREATE|os.O_RDWR|os.O_TRUNC, file.Mode())
 	if err != nil {
