@@ -3,12 +3,12 @@ package dispatch
 import (
 	"errors"
 	"fmt"
-	"github.com/vela-security/vela-public/assert"
-	"github.com/vela-security/vela-public/catch"
 	"time"
 
 	"github.com/vela-security/vela-minion/model"
 	"github.com/vela-security/vela-minion/tunnel"
+	"github.com/vela-security/vela-public/assert"
+	"github.com/vela-security/vela-public/catch"
 	"github.com/vela-security/vela-public/safecall"
 )
 
