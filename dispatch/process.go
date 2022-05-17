@@ -3,10 +3,10 @@ package dispatch
 import (
 	"errors"
 	"fmt"
-	"github.com/vela-security/vela-public/assert"
 	"reflect"
 
 	"github.com/vela-security/vela-minion/tunnel"
+	"github.com/vela-security/vela-public/assert"
 )
 
 type process struct {

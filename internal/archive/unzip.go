@@ -7,24 +7,17 @@ import (
 	"path/filepath"
 )
 
-// Unzip 解压文件到相同目录下同名文件夹中
-func Unzip(path string) error {
-	rc, err := zip.OpenReader(path)
+// Unzip 解压文件
+func Unzip(from, dest string) error {
+	rc, err := zip.OpenReader(from)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = rc.Close() }()
 
-	ext := filepath.Ext(path)
-	dir := path[0 : len(path)-len(ext)] // 同名文件夹: /a/b/data.zip --> /a/b/data
-	_ = os.RemoveAll(dir)
-	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
-		return err
-	}
-
 	files := rc.File
 	for _, file := range files {
-		if err = extract(dir, file); err != nil {
+		if err = extract(dest, file); err != nil {
 			break
 		}
 	}

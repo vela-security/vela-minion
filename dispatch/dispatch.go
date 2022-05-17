@@ -2,8 +2,6 @@ package dispatch
 
 import (
 	"fmt"
-	"github.com/vela-security/vela-public/assert"
-	"github.com/vela-security/vela-minion/tunnel"
 	"io"
 	"net/http"
 	"os"
@@ -13,12 +11,15 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/vela-security/vela-minion/tunnel"
+	"github.com/vela-security/vela-public/assert"
 )
 
 type dispatch struct {
 	xEnv         assert.Environment
 	task         velaTask
-	third        *velaThird
+	third        *thirdManager
 	pmu          sync.RWMutex
 	processes    map[assert.Opcode]*process
 	taskSyncing  int32
@@ -27,7 +28,9 @@ type dispatch struct {
 
 func WithEnv(env assert.Environment) *dispatch {
 	processes := make(map[assert.Opcode]*process, 16)
-	d := &dispatch{xEnv: env, task: velaTask{xEnv: env}, third: newRockThird(env), processes: processes}
+	third := newThirdManager(env)
+
+	d := &dispatch{xEnv: env, task: velaTask{xEnv: env}, third: third, processes: processes}
 	_ = d.register(assert.OpSubstance, d.syncTask)
 	_ = d.register(assert.OpThird, d.syncThird)
 	_ = d.register(assert.OpReload, d.reloadSubstance)
@@ -80,6 +83,7 @@ func (d *dispatch) syncThird(cli *tunnel.Client) error {
 	}
 	defer atomic.CompareAndSwapInt32(&d.thirdSyncing, 1, 0)
 
+	d.xEnv.Infof("收到 3rd 文件变动信令")
 	d.third.sync(cli)
 
 	return nil
