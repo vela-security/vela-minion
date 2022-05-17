@@ -226,6 +226,7 @@ func (tm *thirdManager) process(cli *tunnel.Client, diffs thirdDiffs) {
 	for _, diff := range diffs {
 		switch diff.Action {
 		case taCreate:
+			tm.env.Infof("3rd 新增: %s", diff.NewFilepath)
 			if file, err := diff.create(cli); err != nil {
 				tm.env.Warnf("3rd 创建错误: %s", diff.NewFilepath)
 			} else {
@@ -234,6 +235,7 @@ func (tm *thirdManager) process(cli *tunnel.Client, diffs thirdDiffs) {
 				tm.mutex.Unlock()
 			}
 		case taMove:
+			tm.env.Infof("3rd 移动: %s -> %s", diff.OldFilepath, diff.NewFilepath)
 			if file, err := diff.move(); err != nil {
 				tm.env.Warnf("3rd 移动错误: %s -> %s", diff.OldFilepath, diff.NewFilepath)
 			} else {
@@ -242,6 +244,7 @@ func (tm *thirdManager) process(cli *tunnel.Client, diffs thirdDiffs) {
 				tm.mutex.Unlock()
 			}
 		case taUpdate:
+			tm.env.Infof("3rd 更新: %s -> %s", diff.OldFilepath, diff.NewFilepath)
 			if file, err := diff.update(cli); err != nil {
 				tm.env.Warnf("3rd 更新错误: %s -> %s", diff.OldFilepath, diff.NewFilepath)
 			} else {
@@ -250,6 +253,7 @@ func (tm *thirdManager) process(cli *tunnel.Client, diffs thirdDiffs) {
 				tm.mutex.Unlock()
 			}
 		case taDelete:
+			tm.env.Infof("3rd 删除: %s -> %s", diff.OldFilepath)
 			if err := diff.delete(); err != nil {
 				tm.env.Warnf("3rd 删除错误: %s", diff.OldFilepath)
 			}
