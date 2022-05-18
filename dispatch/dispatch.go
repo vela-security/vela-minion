@@ -34,6 +34,7 @@ func WithEnv(env assert.Environment) *dispatch {
 	_ = d.register(assert.OpSubstance, d.syncTask)
 	_ = d.register(assert.OpThird, d.syncThird)
 	_ = d.register(assert.OpReload, d.reloadSubstance)
+	_ = d.register(assert.OpOffline, d.opOffline)
 	_ = d.register(assert.OpDeleted, d.opDeleted)
 	_ = d.register(assert.OpUpgrade, d.opUpgrade)
 
@@ -93,9 +94,17 @@ func (d *dispatch) reloadSubstance(cli *tunnel.Client, dat *substance) error {
 	return d.task.reload(cli, dat)
 }
 
-// 	OpDeleted
+// opDeleted
 func (d *dispatch) opDeleted(_ *tunnel.Client) error {
 	d.xEnv.Warnf("节点被删除，理解退出程序")
+	os.Exit(0)
+	return nil
+}
+
+// opOffline
+func (d *dispatch) opOffline(cli *tunnel.Client) error {
+	d.xEnv.Warnf("节点下线")
+	_ = cli.Close()
 	os.Exit(0)
 	return nil
 }
