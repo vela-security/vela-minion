@@ -134,7 +134,7 @@ func (tm *thirdManager) readBucket() {
 	hm := make(map[string]*thirdFile, 32)
 	for _, third := range thirds {
 		hash := third.sumMD5()
-		if hash == third.Name {
+		if hash == third.Hash {
 			hm[third.ID] = third
 		}
 	}
