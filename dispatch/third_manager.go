@@ -114,8 +114,15 @@ func (tm *thirdManager) thirdMap() map[string]*thirdFile {
 }
 
 func (tm *thirdManager) saveBucket() {
-	thirds := tm.velaThirds()
-	_ = tm.bkt.Store(tm.bktKey, thirds, 0)
+	files := tm.thirdMap()
+	ret := make(thirdFiles, 0, len(files))
+	for _, f := range files {
+		ret = append(ret, f)
+	}
+
+	if err := tm.bkt.Store(tm.bktKey, ret, 0); err != nil {
+		tm.env.Warnf("读取bucket中的3rd错误: %v", err)
+	}
 }
 
 // readBucket 读取并校验 bucket 中存储的 3rd 文件信息

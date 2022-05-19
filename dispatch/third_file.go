@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"io"
 	"os"
-	"path/filepath"
 )
 
 // thirdFile 3rd 文件
@@ -22,8 +21,7 @@ type thirdFiles []*thirdFile
 
 // sumMD5 计算本地文件的 md5
 func (f thirdFile) sumMD5() string {
-	saved := filepath.Join(f.Path, f.Name)
-	file, err := os.Open(saved)
+	file, err := os.Open(f.Filepath)
 	if err != nil {
 		return ""
 	}
