@@ -25,9 +25,9 @@ func newThirdManager(env assert.Environment) *thirdManager {
 	bkt := env.Bucket(bktKey)
 	files := make(map[string]*thirdFile, 8)
 	tm := &thirdManager{env: env, bktKey: bktKey, bkt: bkt, files: files}
-	tm.readBucket()
-
 	env.Mime(thirdFiles{}, tm.encodeFunc, tm.decodeFunc)
+
+	tm.readBucket()
 
 	return tm
 }
