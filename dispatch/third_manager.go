@@ -157,11 +157,9 @@ func (*thirdManager) encodeFunc(v interface{}) ([]byte, error) {
 }
 
 func (*thirdManager) decodeFunc(data []byte) (interface{}, error) {
-	var res model.VelaThirds
-	if err := json.Unmarshal(data, &res); err != nil {
-		return nil, err
-	}
-	return res, nil
+	var res thirdFiles
+	err := json.Unmarshal(data, &res)
+	return res, err
 }
 
 func (tm *thirdManager) compare(recs model.VelaThirds) thirdDiffs {
