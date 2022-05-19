@@ -84,7 +84,7 @@ func (tm *thirdManager) velaThirds() model.VelaThirds {
 	tm.mutex.RLock()
 	defer tm.mutex.RUnlock()
 
-	ret := make(model.VelaThirds, len(tm.files))
+	ret := make(model.VelaThirds, 0, len(tm.files))
 	for _, file := range tm.files {
 		vt := &model.VelaThird{ID: file.ID, Path: file.Path, Name: file.Name, Hash: file.Hash}
 		ret = append(ret, vt)
