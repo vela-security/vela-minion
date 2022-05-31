@@ -16,6 +16,11 @@ import (
 	"github.com/vela-security/vela-public/assert"
 )
 
+type message struct {
+	cli *tunnel.Client
+	rec *tunnel.Receive
+}
+
 type dispatch struct {
 	xEnv         assert.Environment
 	task         velaTask
@@ -24,19 +29,25 @@ type dispatch struct {
 	processes    map[assert.Opcode]*process
 	taskSyncing  int32
 	thirdSyncing int32
+	messages     chan *message
 }
 
 func WithEnv(env assert.Environment) *dispatch {
 	processes := make(map[assert.Opcode]*process, 16)
 	third := newThirdManager(env)
 
-	d := &dispatch{xEnv: env, task: velaTask{xEnv: env}, third: third, processes: processes}
+	messages := make(chan *message, 64)
+
+	d := &dispatch{xEnv: env, task: velaTask{xEnv: env}, third: third, processes: processes, messages: messages}
 	_ = d.register(assert.OpSubstance, d.syncTask)
 	_ = d.register(assert.OpThird, d.syncThird)
 	_ = d.register(assert.OpReload, d.reloadSubstance)
 	_ = d.register(assert.OpOffline, d.opOffline)
 	_ = d.register(assert.OpDeleted, d.opDeleted)
 	_ = d.register(assert.OpUpgrade, d.opUpgrade)
+
+	// 执行收到的消息
+	d.worker(16)
 
 	return d
 }
@@ -47,6 +58,37 @@ func (d *dispatch) OnConnect(cli *tunnel.Client) {
 }
 
 func (d *dispatch) OnMessage(cli *tunnel.Client, rec *tunnel.Receive) {
+	d.messages <- &message{cli: cli, rec: rec}
+}
+
+func (d *dispatch) OnDisconnect(_ *tunnel.Client) {
+}
+
+func (d *dispatch) syncTask(cli *tunnel.Client) error {
+	if !atomic.CompareAndSwapInt32(&d.taskSyncing, 0, 1) {
+		return nil
+	}
+	defer atomic.CompareAndSwapInt32(&d.taskSyncing, 1, 0)
+
+	d.task.sync(cli)
+
+	return nil
+}
+
+func (d *dispatch) worker(n int) {
+	for i := 0; i < n; i++ {
+		go d.work()
+	}
+}
+
+func (d *dispatch) work() {
+	for msg := range d.messages {
+		d.process(msg)
+	}
+}
+
+func (d *dispatch) process(msg *message) {
+	cli, rec := msg.cli, msg.rec
 	opcode := rec.Opcode()
 	d.xEnv.Warnf("执行命令: %s", opcode)
 	d.pmu.RLock()
@@ -62,20 +104,6 @@ func (d *dispatch) OnMessage(cli *tunnel.Client, rec *tunnel.Receive) {
 	} else {
 		d.xEnv.Infof("%s 处理完毕", opcode)
 	}
-}
-
-func (d *dispatch) OnDisconnect(_ *tunnel.Client) {
-}
-
-func (d *dispatch) syncTask(cli *tunnel.Client) error {
-	if !atomic.CompareAndSwapInt32(&d.taskSyncing, 0, 1) {
-		return nil
-	}
-	defer atomic.CompareAndSwapInt32(&d.taskSyncing, 1, 0)
-
-	d.task.sync(cli)
-
-	return nil
 }
 
 func (d *dispatch) syncThird(cli *tunnel.Client) error {
