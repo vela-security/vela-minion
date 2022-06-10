@@ -35,6 +35,7 @@ func newPushEx() *pushEx {
 			"account":    newPushFunc(assert.OpAccount),
 			"filesystem": newPushFunc(assert.OpFileSystem),
 			"task":       lua.NewFunction(pushTaskTree),
+			"json":       lua.NewFunction(pushJson),
 		}}
 }
 

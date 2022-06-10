@@ -1,6 +1,7 @@
 package minion
 
 import (
+	"encoding/json"
 	"github.com/vela-security/pivot/tasktree"
 	"github.com/vela-security/vela-public/assert"
 	"github.com/vela-security/vela-public/auxlib"
@@ -27,9 +28,37 @@ func pushL(L *lua.LState) int {
 	return 0
 }
 
+func pushJson(L *lua.LState) int {
+	if n := checkEx(L); n != 0 {
+		return n
+	}
+
+	biz := L.IsInt(1)
+	lv := L.Get(2)
+	switch lv.Type() {
+	case lua.LTNil:
+		return 0
+
+	default:
+		chunk := lv.String()
+		if len(chunk) == 0 {
+			return 0
+		}
+
+		err := xEnv.TnlSend(assert.Opcode(biz), json.RawMessage(chunk))
+		if err != nil {
+			L.Push(lua.S2L(err.Error()))
+			return 1
+		}
+		return 0
+
+	}
+
+}
+
 func pushTaskTree(L *lua.LState) int {
 	data := tasktree.ToView()
-	err := xEnv.TnlSend(assert.OpCoreService, data)
+	err := xEnv.TnlSend(assert.OpTask, data)
 	if err != nil {
 		L.Push(lua.S2L(err.Error()))
 		return 1
