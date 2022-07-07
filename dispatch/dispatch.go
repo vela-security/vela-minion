@@ -2,6 +2,7 @@ package dispatch
 
 import (
 	"fmt"
+	opcode "github.com/vela-security/vela-opcode"
 	"io"
 	"net/http"
 	"os"
@@ -26,25 +27,25 @@ type dispatch struct {
 	task         velaTask
 	third        *thirdManager
 	pmu          sync.RWMutex
-	processes    map[assert.Opcode]*process
+	processes    map[opcode.Opcode]*process
 	taskSyncing  int32
 	thirdSyncing int32
 	messages     chan *message
 }
 
 func WithEnv(env assert.Environment) *dispatch {
-	processes := make(map[assert.Opcode]*process, 16)
+	processes := make(map[opcode.Opcode]*process, 16)
 	third := newThirdManager(env)
 
 	messages := make(chan *message, 64)
 
 	d := &dispatch{xEnv: env, task: velaTask{xEnv: env}, third: third, processes: processes, messages: messages}
-	_ = d.register(assert.OpSubstance, d.syncTask)
-	_ = d.register(assert.OpThird, d.syncThird)
-	_ = d.register(assert.OpReload, d.reloadSubstance)
-	_ = d.register(assert.OpOffline, d.opOffline)
-	_ = d.register(assert.OpDeleted, d.opDeleted)
-	_ = d.register(assert.OpUpgrade, d.opUpgrade)
+	_ = d.register(opcode.OpSubstance, d.syncTask)
+	_ = d.register(opcode.OpThird, d.syncThird)
+	_ = d.register(opcode.OpReload, d.reloadSubstance)
+	_ = d.register(opcode.OpOffline, d.opOffline)
+	_ = d.register(opcode.OpDeleted, d.opDeleted)
+	_ = d.register(opcode.OpUpgrade, d.opUpgrade)
 
 	// 执行收到的消息
 	d.worker(16)

@@ -3,11 +3,11 @@ package tunnel
 import (
 	"encoding/binary"
 	"encoding/json"
-	"github.com/vela-security/vela-public/assert"
+	opcode "github.com/vela-security/vela-opcode"
 )
 
 type Message struct {
-	Opcode assert.Opcode
+	Opcode opcode.Opcode
 	Data   interface{}
 }
 
@@ -16,12 +16,12 @@ func (m Message) marshal(mask byte) ([]byte, error) {
 }
 
 type Receive struct {
-	opcode assert.Opcode
+	opcode opcode.Opcode
 	data   []byte
 }
 
 // Opcode 操作码
-func (r Receive) Opcode() assert.Opcode {
+func (r Receive) Opcode() opcode.Opcode {
 	return r.opcode
 }
 
@@ -34,11 +34,11 @@ func (r Receive) Bind(v interface{}) error {
 }
 
 func (r *Receive) unmarshal(raw []byte, mask byte) error {
-	opcode, data, err := unmarshal(raw, mask)
+	op, data, err := unmarshal(raw, mask)
 	if err != nil {
 		return err
 	}
-	r.opcode, r.data = assert.Opcode(opcode), data
+	r.opcode, r.data = opcode.Opcode(op), data
 	return nil
 }
 

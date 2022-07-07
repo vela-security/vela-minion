@@ -6,8 +6,24 @@
 - 向服务器端提交数据
 - mime 数据编码
 - value 数据值
+
+### 扩展接口
+- vela.push.sysinfo(value)
+- vela.push.cpu (value)
+- vela.push.disk(value)
+- vela.push.listen(value)
+- vela.push.memory(value)
+- vela.push.socket(value)
+- vela.push.network(value)
+- vela.push.process(value)
+- vela.push.service(value)
+- vela.push.account(value)
+- vela.push.filesystem(value)
+- vela.push.task(value)
+- vela.push.json(opcode ,value)
+
 ```lua
-    local mime = vela.require("mime")
+    local opcode = vela.require("opcode")
     local err = vela.push(mime.xxx , aaa)
 ```
 

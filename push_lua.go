@@ -3,12 +3,12 @@ package minion
 import (
 	"encoding/json"
 	"github.com/vela-security/pivot/tasktree"
-	"github.com/vela-security/vela-public/assert"
+	opcode "github.com/vela-security/vela-opcode"
 	"github.com/vela-security/vela-public/auxlib"
 	"github.com/vela-security/vela-public/lua"
 )
 
-func pushL(L *lua.LState) int {
+func pushText(L *lua.LState) int {
 	if n := checkEx(L); n != 0 {
 		return n
 	}
@@ -19,7 +19,7 @@ func pushL(L *lua.LState) int {
 		return 0
 	}
 
-	err := xEnv.TnlSend(assert.Opcode(biz), auxlib.S2B(chunk))
+	err := xEnv.TnlSend(opcode.Opcode(biz), auxlib.S2B(chunk))
 	if err != nil {
 		L.Push(lua.S2L(err.Error()))
 		return 1
@@ -45,7 +45,7 @@ func pushJson(L *lua.LState) int {
 			return 0
 		}
 
-		err := xEnv.TnlSend(assert.Opcode(biz), json.RawMessage(chunk))
+		err := xEnv.TnlSend(opcode.Opcode(biz), json.RawMessage(chunk))
 		if err != nil {
 			L.Push(lua.S2L(err.Error()))
 			return 1
@@ -58,7 +58,7 @@ func pushJson(L *lua.LState) int {
 
 func pushTaskTree(L *lua.LState) int {
 	data := tasktree.ToView()
-	err := xEnv.TnlSend(assert.OpTask, data)
+	err := xEnv.TnlSend(opcode.OpTask, data)
 	if err != nil {
 		L.Push(lua.S2L(err.Error()))
 		return 1
@@ -67,10 +67,6 @@ func pushTaskTree(L *lua.LState) int {
 }
 
 func (pe *pushEx) Index(L *lua.LState, key string) lua.LValue {
-	if key == "any" {
-		return pe.any
-	}
-
 	if lv, ok := pe.meta[key]; ok {
 		return lv
 	}

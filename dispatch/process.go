@@ -3,10 +3,10 @@ package dispatch
 import (
 	"errors"
 	"fmt"
+	opcode "github.com/vela-security/vela-opcode"
 	"reflect"
 
 	"github.com/vela-security/vela-minion/tunnel"
-	"github.com/vela-security/vela-public/assert"
 )
 
 type process struct {
@@ -46,7 +46,7 @@ func (p process) execute(cli *tunnel.Client, msg *tunnel.Receive) error {
 var cliType = reflect.TypeOf(new(tunnel.Client))
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
 
-func (d *dispatch) register(opcode assert.Opcode, fn interface{}) error {
+func (d *dispatch) register(opcode opcode.Opcode, fn interface{}) error {
 	if fn == nil {
 		return errors.New("方法不能为空")
 	}

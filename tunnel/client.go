@@ -3,6 +3,7 @@ package tunnel
 import (
 	"context"
 	"errors"
+	opcode "github.com/vela-security/vela-opcode"
 	"github.com/vela-security/vela-public/assert"
 	"io"
 	"net/http"
@@ -120,7 +121,7 @@ func (c *Client) Inactive() bool {
 }
 
 // Push 通过 websocket 通道发送数据
-func (c *Client) Push(op assert.Opcode, data interface{}) error {
+func (c *Client) Push(op opcode.Opcode, data interface{}) error {
 	if conn := c.conn; conn != nil {
 		return conn.Send(&Message{Opcode: op, Data: data})
 	}
@@ -230,7 +231,7 @@ func (c Client) dial(u *url.URL, header http.Header) (*websocket.Conn, *http.Res
 
 // heartbeat 发送心跳包
 func (c Client) heartbeat(ctx context.Context, interval time.Duration) {
-	msg := &Message{Opcode: assert.OpHeartbeat}
+	msg := &Message{Opcode: opcode.OpHeartbeat}
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 

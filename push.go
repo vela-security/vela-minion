@@ -3,7 +3,7 @@ package minion
 import (
 	"encoding/json"
 	audit "github.com/vela-security/vela-audit"
-	"github.com/vela-security/vela-public/assert"
+	opcode "github.com/vela-security/vela-opcode"
 	"github.com/vela-security/vela-public/lua"
 )
 
@@ -21,21 +21,18 @@ func (pe *pushEx) Peek() lua.LValue                       { return pe }
 
 func newPushEx() *pushEx {
 	return &pushEx{
-		any: lua.NewFunction(pushL),
 		meta: map[string]lua.LValue{
-			"sysinfo":    newPushFunc(assert.OpSysInfo),
-			"cpu":        newPushFunc(assert.OpCPU),
-			"disk":       newPushFunc(assert.OpDiskIO),
-			"listen":     newPushFunc(assert.OpListen),
-			"memory":     newPushFunc(assert.OpMemory),
-			"socket":     newPushFunc(assert.OpSocket),
-			"network":    newPushFunc(assert.OpNetwork),
-			"process":    newPushFunc(assert.OpProcess),
-			"service":    newPushFunc(assert.OpService),
-			"account":    newPushFunc(assert.OpAccount),
-			"filesystem": newPushFunc(assert.OpFileSystem),
+			"sysinfo":    newPushFunc(opcode.OpSysInfo),
+			"cpu":        newPushFunc(opcode.OpCPU),
+			"disk":       newPushFunc(opcode.OpDiskIO),
+			"memory":     newPushFunc(opcode.OpMemory),
+			"socket":     newPushFunc(opcode.OpSocket),
+			"network":    newPushFunc(opcode.OpNetwork),
+			"service":    newPushFunc(opcode.OpService),
+			"filesystem": newPushFunc(opcode.OpFileSystem),
 			"task":       lua.NewFunction(pushTaskTree),
 			"json":       lua.NewFunction(pushJson),
+			"text":       lua.NewFunction(pushText),
 		}}
 }
 
@@ -47,7 +44,8 @@ func checkEx(L *lua.LState) int {
 	return 0
 }
 
-func pushExec(op assert.Opcode, L *lua.LState) int {
+func pushExec(op opcode.Opcode, L *lua.LState) int {
+
 	if n := checkEx(L); n > 0 {
 		return n
 	}
@@ -73,7 +71,7 @@ func pushExec(op assert.Opcode, L *lua.LState) int {
 	return 0
 }
 
-func newPushFunc(op assert.Opcode) *lua.LFunction {
+func newPushFunc(op opcode.Opcode) *lua.LFunction {
 	return lua.NewFunction(func(L *lua.LState) int {
 		return pushExec(op, L)
 	})
