@@ -55,7 +55,7 @@ func pushExec(op opcode.Opcode, L *lua.LState) int {
 
 	switch val.Type() {
 
-	case lua.LTString, lua.LTObject:
+	case lua.LTString, lua.LTObject, lua.LTMap, lua.LTSlice:
 		raw := val.String()
 		err = xEnv.TnlSend(op, json.RawMessage(raw))
 		if err != nil {

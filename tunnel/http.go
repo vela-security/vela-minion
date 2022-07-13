@@ -26,6 +26,11 @@ func (h HTTPResponse) JSON(v interface{}) error {
 		return h.Error
 	}
 	defer func() { _ = h.res.Body.Close() }()
+
+	if h.res.StatusCode == http.StatusNoContent {
+		return nil
+	}
+
 	return json.NewDecoder(h.res.Body).Decode(v)
 }
 

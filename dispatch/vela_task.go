@@ -136,7 +136,7 @@ func (vt velaTask) wakeup() error {
 // remove 删除配置
 func (vt velaTask) remove(names []string) {
 	for _, name := range names {
-		vt.xEnv.Infof("执行配置: %s", name)
+		vt.xEnv.Infof("删除配置: %s", name)
 		_ = vt.xEnv.RemoveTask(name, assert.TRANSPORT)
 	}
 }
